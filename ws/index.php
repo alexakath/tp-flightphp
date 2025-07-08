@@ -5,6 +5,7 @@ require 'routes/fond_routes.php';
 require 'routes/typepret_routes.php';
 require 'routes/pret_routes.php';
 require 'routes/client_routes.php';
+require 'routes/interet_routes.php';
 
 // Gérer les fichiers HTML statiques
 Flight::route('GET /(*.html)', function($path) {
