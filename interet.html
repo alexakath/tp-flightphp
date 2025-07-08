@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Intérêts Mensuels - EF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -90,6 +91,19 @@
             font-size: 18px;
             font-weight: bold;
             color: #27ae60;
+        }
+        
+        .chart-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
         }
         
         table {
@@ -192,13 +206,19 @@
 
         <div id="error-container"></div>
 
+        <div class="chart-section" id="chart-section" style="display: none;">
+            <h3>Répartition d'Intérêts par Mois</h3>
+            <div class="chart-container">
+                <canvas id="interetsChart"></canvas>
+            </div>
+        </div>
+
         <table id="table-interets" style="display: none;">
             <thead>
                 <tr>
                     <th>Mois</th>
                     <th>Année</th>
                     <th>Nombre de Prêts Actifs</th>
-                    <th>Capital Total en Cours</th>
                     <th>Intérêts Gagnés</th>
                 </tr>
             </thead>
@@ -213,6 +233,7 @@
     <script>
         const apiBase = "http://localhost/tp-flightphp/ws";
         let donneesInterets = [];
+        let interetsChart = null;
 
         function showError(message) {
             const errorContainer = document.getElementById('error-container');
@@ -269,6 +290,7 @@
                 afficherTableauInterets(donneesInterets);
                 afficherStatistiques(response.stats);
                 afficherInfoPeriode(moisDebut, moisFin);
+                afficherGraphique(donneesInterets);
             });
         }
 
@@ -296,7 +318,6 @@
                     <td>${getNomMois(item.mois)}</td>
                     <td>${item.annee}</td>
                     <td style="text-align: center;">${item.nombre_prets_actifs}</td>
-                    <td class="montant-cell">${parseFloat(item.capital_total).toFixed(2)} €</td>
                     <td class="montant-cell">${parseFloat(item.interets_gagnes).toFixed(2)} €</td>
                 `;
                 tbody.appendChild(tr);
@@ -307,7 +328,7 @@
             const totalRow = document.createElement('tr');
             totalRow.className = 'total-row';
             totalRow.innerHTML = `
-                <td colspan="4" style="text-align: right; font-weight: bold;">TOTAL :</td>
+                <td colspan="3" style="text-align: right; font-weight: bold;">TOTAL :</td>
                 <td class="montant-cell">${totalInterets.toFixed(2)} €</td>
             `;
             tbody.appendChild(totalRow);
@@ -340,6 +361,75 @@
             periodeInfo.style.display = 'block';
         }
 
+        function afficherGraphique(data) {
+            const chartSection = document.getElementById('chart-section');
+            
+            if (!data || data.length === 0) {
+                chartSection.style.display = 'none';
+                return;
+            }
+
+            chartSection.style.display = 'block';
+
+            // Détruire le graphique existant s'il existe
+            if (interetsChart) {
+                interetsChart.destroy();
+            }
+
+            // Préparer les données pour le graphique
+            const labels = data.map(item => `${getNomMois(item.mois)} ${item.annee}`);
+            const interetsData = data.map(item => parseFloat(item.interets_gagnes));
+
+            // Créer le graphique
+            const ctx = document.getElementById('interetsChart').getContext('2d');
+            interetsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Intérêts Gagnés (€)',
+                        data: interetsData,
+                        backgroundColor: 'rgba(39, 174, 96, 0.8)',
+                        borderColor: 'rgba(39, 174, 96, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} €`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(2) + ' €';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         function getNomMois(numMois) {
             const mois = [
                 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -354,10 +444,10 @@
                 return;
             }
 
-            let csv = "Mois,Année,Nombre de Prêts Actifs,Capital Total (€),Intérêts Gagnés (€)\n";
+            let csv = "Mois,Année,Nombre de Prêts Actifs,Intérêts Gagnés (€)\n";
             
             donneesInterets.forEach(item => {
-                csv += `${getNomMois(item.mois)},${item.annee},${item.nombre_prets_actifs},${parseFloat(item.capital_total).toFixed(2)},${parseFloat(item.interets_gagnes).toFixed(2)}\n`;
+                csv += `${getNomMois(item.mois)},${item.annee},${item.nombre_prets_actifs},${parseFloat(item.interets_gagnes).toFixed(2)}\n`;
             });
 
             // Créer et télécharger le fichier CSV
