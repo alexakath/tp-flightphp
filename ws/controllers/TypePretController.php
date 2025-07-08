@@ -7,6 +7,7 @@ class TypePretController {
             $typesPret = TypePret::getAll();
             Flight::json($typesPret);
         } catch (Exception $e) {
+            error_log("Erreur getAll TypePret: " . $e->getMessage());
             Flight::json(['error' => $e->getMessage()], 500);
         }
     }
@@ -20,6 +21,7 @@ class TypePretController {
             }
             Flight::json($typePret);
         } catch (Exception $e) {
+            error_log("Erreur getById TypePret: " . $e->getMessage());
             Flight::json(['error' => $e->getMessage()], 500);
         }
     }
@@ -32,10 +34,10 @@ class TypePretController {
             error_log("Données reçues pour création: " . print_r($data, true));
             
             $id = TypePret::create($data);
-            Flight::json(['message' => 'Type de prêt ajouté', 'id' => $id]);
+            Flight::json(['message' => 'Type de prêt ajouté avec succès', 'id' => $id], 201);
         } catch (Exception $e) {
-            error_log("Erreur création: " . $e->getMessage());
-            Flight::json(['error' => $e->getMessage()], 500);
+            error_log("Erreur création TypePret: " . $e->getMessage());
+            Flight::json(['error' => $e->getMessage()], 400);
         }
     }
 
@@ -44,21 +46,47 @@ class TypePretController {
             $data = self::getRequestData();
             
             // Debug: log des données reçues
-            error_log("Données reçues pour modification: " . print_r($data, true));
+            error_log("Données reçues pour modification ID $id: " . print_r($data, true));
             
             TypePret::update($id, $data);
-            Flight::json(['message' => 'Type de prêt modifié']);
+            Flight::json(['message' => 'Type de prêt modifié avec succès'], 200);
         } catch (Exception $e) {
-            error_log("Erreur modification: " . $e->getMessage());
-            Flight::json(['error' => $e->getMessage()], 500);
+            error_log("Erreur modification TypePret ID $id: " . $e->getMessage());
+            Flight::json(['error' => $e->getMessage()], 400);
         }
     }
 
     public static function delete($id) {
         try {
+            // Debug: log de la tentative de suppression
+            error_log("Tentative de suppression TypePret ID: $id");
+            
+            // Vérifier si le type de prêt existe
+            $typePret = TypePret::getById($id);
+            if (!$typePret) {
+                error_log("Type de prêt ID $id non trouvé");
+                Flight::json(['error' => 'Type de prêt non trouvé'], 404);
+                return;
+            }
+            
+            // Vérifier s'il y a des prêts associés
+            $db = getDB();
+            $stmt = $db->prepare("SELECT COUNT(*) as count FROM pret WHERE type_pret_id = ?");
+            $stmt->execute([$id]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($result['count'] > 0) {
+                error_log("Impossible de supprimer le type de prêt ID $id: des prêts sont associés");
+                Flight::json(['error' => 'Impossible de supprimer ce type de prêt car des prêts lui sont associés'], 400);
+                return;
+            }
+            
             TypePret::delete($id);
-            Flight::json(['message' => 'Type de prêt supprimé']);
+            error_log("Type de prêt ID $id supprimé avec succès");
+            Flight::json(['message' => 'Type de prêt supprimé avec succès'], 200);
+            
         } catch (Exception $e) {
+            error_log("Erreur suppression TypePret ID $id: " . $e->getMessage());
             Flight::json(['error' => $e->getMessage()], 500);
         }
     }
@@ -93,3 +121,4 @@ class TypePretController {
         return $data;
     }
 }
+?>

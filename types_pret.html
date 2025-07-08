@@ -192,64 +192,92 @@
         }
 
         function ajax(method, url, data, callback) {
-            const xhr = new XMLHttpRequest();
-            xhr.open(method, apiBase + url, true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = () => {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            callback(response);
-                        } catch (e) {
-                            console.error("Erreur de parsing JSON:", e);
-                            console.error("Réponse reçue:", xhr.responseText);
-                            showError("Erreur de communication avec le serveur");
-                        }
-                    } else {
-                        console.error("Erreur HTTP:", xhr.status, xhr.statusText);
-                        console.error("Réponse:", xhr.responseText);
-                        showError(`Erreur de communication avec le serveur (HTTP ${xhr.status})`);
-                    }
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, apiBase + url, true);
+    
+    // Définir les headers appropriés selon la méthode
+    if (method === 'POST' || method === 'PUT') {
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    }
+    
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            console.log(`Réponse ${method} ${url}:`, xhr.status, xhr.responseText); // Debug
+            
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    callback(response);
+                } catch (e) {
+                    console.error("Erreur de parsing JSON:", e);
+                    console.error("Réponse reçue:", xhr.responseText);
+                    showError("Erreur de communication avec le serveur");
                 }
-            };
-            xhr.send(data);
+            } else {
+                console.error("Erreur HTTP:", xhr.status, xhr.statusText);
+                console.error("Réponse:", xhr.responseText);
+                
+                // Essayer de parser la réponse d'erreur
+                try {
+                    const errorResponse = JSON.parse(xhr.responseText);
+                    showError(errorResponse.error || `Erreur de communication avec le serveur (HTTP ${xhr.status})`);
+                } catch (e) {
+                    showError(`Erreur de communication avec le serveur (HTTP ${xhr.status})`);
+                }
+            }
         }
+    };
+    
+    xhr.send(data);
+}
 
         function chargerTypesPret() {
-            ajax("GET", "/types-pret", null, (data) => {
-                const tbody = document.querySelector("#table-types-pret tbody");
-                tbody.innerHTML = "";
+    ajax("GET", "/types-pret", null, (data) => {
+        typesPretData = data || []; // Stocker les données globalement
+        
+        const tbody = document.querySelector("#table-types-pret tbody");
+        tbody.innerHTML = "";
 
-                let totalTaux = 0;
+        let totalTaux = 0;
 
-                if (data && data.length > 0) {
-                    data.forEach(type => {
-                        const tr = document.createElement("tr");
-                        tr.innerHTML = `
-                            <td>${type.id}</td>
-                            <td>${type.nom}</td>
-                            <td>${parseFloat(type.taux_annuel).toFixed(2)}%</td>
-                            <td>${type.duree_max_mois} mois</td>
-                            <td>${parseFloat(type.montant_min).toFixed(2)} €</td>
-                            <td>${parseFloat(type.montant_max).toFixed(2)} €</td>
-                            <td>${type.created_at}</td>
-                            <td>
-                                <button class="btn-edit" onclick='remplirFormulaire(${JSON.stringify(type).replace(/'/g, "\\'")})''>✏️ Modifier</button>
-                                <button class="btn-delete" onclick='supprimerTypePret(${type.id})'>🗑️ Supprimer</button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                        totalTaux += parseFloat(type.taux_annuel);
-                    });
-                }
-
-                // Mettre à jour les statistiques
-                document.getElementById("total-types").textContent = data ? data.length : 0;
-                const tauxMoyen = (data && data.length > 0) ? (totalTaux / data.length).toFixed(2) : 0;
-                document.getElementById("taux-moyen").textContent = tauxMoyen + "%";
+        if (data && data.length > 0) {
+            data.forEach(type => {
+                const tr = document.createElement("tr");
+                
+                tr.innerHTML = `
+                    <td>${type.id}</td>
+                    <td>${escapeHtml(type.nom)}</td>
+                    <td>${parseFloat(type.taux_annuel).toFixed(2)}%</td>
+                    <td>${type.duree_max_mois} mois</td>
+                    <td>${parseFloat(type.montant_min).toFixed(2)} €</td>
+                    <td>${parseFloat(type.montant_max).toFixed(2)} €</td>
+                    <td>${type.created_at}</td>
+                    <td>
+                        <button class="btn-edit" onclick="remplirFormulaire(${type.id})">✏️ Modifier</button>
+                        <button class="btn-delete" onclick="supprimerTypePret(${type.id})">🗑️ Supprimer</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+                totalTaux += parseFloat(type.taux_annuel);
             });
         }
+
+        // Mettre à jour les statistiques
+        document.getElementById("total-types").textContent = data ? data.length : 0;
+        const tauxMoyen = (data && data.length > 0) ? (totalTaux / data.length).toFixed(2) : 0;
+        document.getElementById("taux-moyen").textContent = tauxMoyen + "%";
+    });
+}
+// Fonction utilitaire pour échapper le HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Stocker les données des types de prêt globalement pour éviter les problèmes JSON
+let typesPretData = [];
 
         function ajouterOuModifier() {
             const id = document.getElementById("id").value;
@@ -294,23 +322,36 @@
             }
         }
 
-        function remplirFormulaire(type) {
-            document.getElementById("id").value = type.id;
-            document.getElementById("nom").value = type.nom;
-            document.getElementById("taux_annuel").value = type.taux_annuel;
-            document.getElementById("duree_max_mois").value = type.duree_max_mois;
-            document.getElementById("montant_min").value = type.montant_min;
-            document.getElementById("montant_max").value = type.montant_max;
-        }
+        function remplirFormulaire(typeId) {
+    const type = typesPretData.find(t => t.id == typeId);
+    if (type) {
+        document.getElementById("id").value = type.id;
+        document.getElementById("nom").value = type.nom;
+        document.getElementById("taux_annuel").value = type.taux_annuel;
+        document.getElementById("duree_max_mois").value = type.duree_max_mois;
+        document.getElementById("montant_min").value = type.montant_min;
+        document.getElementById("montant_max").value = type.montant_max;
+    }
+}
 
         function supprimerTypePret(id) {
-            if (confirm("Êtes-vous sûr de vouloir supprimer ce type de prêt ?")) {
-                ajax("DELETE", `/types-pret/${id}`, null, () => {
-                    chargerTypesPret();
-                    alert("Type de prêt supprimé avec succès!");
-                });
+    if (confirm("Êtes-vous sûr de vouloir supprimer ce type de prêt ?")) {
+        console.log(`Tentative de suppression du type de prêt ID: ${id}`); // Debug
+        
+        ajax("DELETE", `/types-pret/${id}`, null, (response) => {
+            console.log("Réponse de suppression:", response); // Debug
+            
+            if (response.message) {
+                alert("Type de prêt supprimé avec succès!");
+                chargerTypesPret(); // Recharger la liste
+            } else if (response.error) {
+                showError(response.error);
+            } else {
+                showError("Erreur inconnue lors de la suppression");
             }
-        }
+        });
+    }
+}
 
         function resetForm() {
             document.getElementById("id").value = "";
