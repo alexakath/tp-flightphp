@@ -62,13 +62,13 @@
             background-color: #2980b9;
         }
         
-        .btn-approve {
-            background-color: #27ae60;
+        .btn-modify {
+            background-color: #f1c40f;
             padding: 5px 10px;
             font-size: 14px;
         }
         
-        .btn-reject {
+        .btn-delete {
             background-color: #e74c3c;
             padding: 5px 10px;
             font-size: 14px;
@@ -122,18 +122,16 @@
     </style>
 </head>
 <body>
-    <div class="570container">
+    <div class="container">
         <h1>Gestion des Prêts - Établissement Financier</h1>
 
         <div class="stats-section">
-            <div class="(city: 0px; font-family: monospace; font-size: 0.9em;">Solde Total: <span id="solde-total">0.00 €</span></div>
-            <div class="stats-item">
-                Total Prêts: <span id="total-prets">0</span>
-            </div>
+            <div class="stats-item">Solde Total: <span id="solde-total">0.00 €</span></div>
+            <div class="stats-item">Total Prêts: <span id="total-prets">0</span></div>
         </div>
 
         <div class="form-section">
-            <h3>Soumettre une Demande de Prêt</h3>
+            <h3 id="form-title">Soumettre une Demande de Prêt</h3>
             <div class="form-row">
                 <select id="client_id" required>
                     <option value="">Sélectionner un client</option>
@@ -148,7 +146,7 @@
                 <input type="date" id="date_debut" placeholder="Date de début" required>
             </div>
             <div class="form-row">
-                <button onclick="soumettrePret()">Soumettre</button>
+                <button id="submit-btn" onclick="soumettrePret()">Soumettre</button>
                 <button onclick="resetForm()" style="background-color: #95a5a6;">Annuler</button>
             </div>
         </div>
@@ -164,7 +162,6 @@
                     <th>Montant</th>
                     <th>Durée</th>
                     <th>Date de Début</th>
-                    <th>Statut</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -174,6 +171,7 @@
 
     <script>
         const apiBase = "http://localhost/tp-flightphp/ws";
+        let currentPretId = null;
 
         function showError(message) {
             const errorContainer = document.getElementById('error-container');
@@ -257,12 +255,9 @@
                             <td>${parseFloat(pret.montant).toFixed(2)} €</td>
                             <td>${pret.duree} mois</td>
                             <td>${pret.date_debut}</td>
-                            <td>${pret.statut}</td>
                             <td>
-                                ${pret.statut === 'en_attente' ? `
-                                    <button class="btn-approve" onclick="updatePretStatus(${pret.id}, 'approuve')">✔️ Approuver</button>
-                                    <button class="btn-reject" onclick="updatePretStatus(${pret.id}, 'rejete')">❌ Rejeter</button>
-                                ` : ''}
+                                <button class="btn-modify" onclick="modifierPret(${pret.id}, '${pret.client_id}', '${pret.type_pret_id}', ${pret.montant}, ${pret.duree}, '${pret.date_debut}')">✏️ Modifier</button>
+                                <button class="btn-delete" onclick="supprimerPret(${pret.id})">🗑️ Supprimer</button>
                             </td>
                         `;
                         tbody.appendChild(tr);
@@ -285,34 +280,50 @@
 
             const data = `client_id=${encodeURIComponent(client_id)}&type_pret_id=${encodeURIComponent(type_pret_id)}&montant=${encodeURIComponent(montant)}&duree=${encodeURIComponent(duree)}&date_debut=${encodeURIComponent(date_debut)}`;
 
-            ajax("POST", "/prets", data, (response) => {
+            const method = currentPretId ? "PUT" : "POST";
+            const url = currentPretId ? `/prets/${currentPretId}` : "/prets";
+
+            ajax(method, url, data, (response) => {
                 if (response.error) {
                     showError(response.error);
                 } else {
                     resetForm();
                     chargerPrets();
                     chargerSoldeTotal();
-                    alert("Demande de prêt soumise avec succès !");
+                    alert(currentPretId ? "Prêt modifié avec succès !" : "Demande de prêt soumise avec succès !");
                 }
             });
         }
 
-        function updatePretStatus(id, statut) {
-            const action = statut === 'approuve' ? 'approuver' : 'rejeter';
-            if (confirm(`Êtes-vous sûr de vouloir ${action} ce prêt ?`)) {
-                ajax("PUT", `/prets/${id}`, `statut=${encodeURIComponent(statut)}`, (response) => {
+        function modifierPret(id, client_id, type_pret_id, montant, duree, date_debut) {
+            currentPretId = id;
+            document.getElementById("form-title").textContent = "Modifier une Demande de Prêt";
+            document.getElementById("submit-btn").textContent = "Modifier";
+            document.getElementById("client_id").value = client_id;
+            document.getElementById("type_pret_id").value = type_pret_id;
+            document.getElementById("montant").value = montant;
+            document.getElementById("duree").value = duree;
+            document.getElementById("date_debut").value = date_debut;
+        }
+
+        function supprimerPret(id) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer ce prêt ?")) {
+                ajax("DELETE", `/prets/${id}`, null, (response) => {
                     if (response.error) {
                         showError(response.error);
                     } else {
                         chargerPrets();
                         chargerSoldeTotal();
-                        alert(`Prêt ${action} avec succès !`);
+                        alert("Prêt supprimé avec succès !");
                     }
                 });
             }
         }
 
         function resetForm() {
+            currentPretId = null;
+            document.getElementById("form-title").textContent = "Soumettre une Demande de Prêt";
+            document.getElementById("submit-btn").textContent = "Soumettre";
             document.getElementById("client_id").value = "";
             document.getElementById("type_pret_id").value = "";
             document.getElementById("montant").value = "";
