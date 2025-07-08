@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Fonds - EF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        input,
+        button {
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="date"] {
+            width: 200px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px 20px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-edit {
+            background-color: #f39c12;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .btn-delete {
+            background-color: #e74c3c;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #34495e;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .total-section {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .total-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Gestion des Fonds de l'Établissement Financier</h1>
+
+        <div class="total-section">
+            <h3>Solde Total Actuel</h3>
+            <div class="total-amount" id="solde-total">0.00 €</div>
+        </div>
+
+        <div class="form-section">
+            <h3>Ajouter / Modifier un Fond</h3>
+            <input type="hidden" id="id">
+            <input type="number" id="montant" placeholder="Montant (€)" step="0.01" min="0">
+            <input type="date" id="date_ajout" placeholder="Date d'ajout">
+            <input type="text" id="description" placeholder="Description">
+            <button onclick="ajouterOuModifier()">Ajouter / Modifier</button>
+            <button onclick="resetForm()" style="background-color: #95a5a6;">Annuler</button>
+        </div>
+
+        <table id="table-fonds">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Montant</th>
+                    <th>Date d'ajout</th>
+                    <th>Description</th>
+                    <th>Date de création</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const apiBase = "http://localhost/tp-flightphp/ws";
+
+        function ajax(method, url, data, callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open(method, apiBase + url, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            callback(response);
+                        } catch (e) {
+                            console.error("Erreur de parsing JSON:", e);
+                            console.error("Réponse reçue:", xhr.responseText);
+                            alert("Erreur de communication avec le serveur");
+                        }
+                    } else {
+                        console.error("Erreur HTTP:", xhr.status, xhr.statusText);
+                        alert("Erreur de communication avec le serveur (HTTP " + xhr.status + ")");
+                    }
+                }
+            };
+            xhr.send(data);
+        }
+
+        function chargerFonds() {
+            ajax("GET", "/fonds", null, (data) => {
+                const tbody = document.querySelector("#table-fonds tbody");
+                tbody.innerHTML = "";
+
+                let soldeActuel = 0;
+
+                if (data && data.length > 0) {
+                    data.forEach(f => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+            <td>${f.id}</td>
+            <td>${parseFloat(f.montant || 0).toFixed(2)} €</td>
+            <td>${f.date_ajout}</td>
+            <td>${f.description || '-'}</td>
+            <td>${f.created_at}</td>
+            <td>
+              <button class="btn-edit" onclick='remplirFormulaire(${JSON.stringify(f)})'>✏️ Modifier</button>
+              <button class="btn-delete" onclick='supprimerFond(${f.id})'>🗑️ Supprimer</button>
+            </td>
+          `;
+                        tbody.appendChild(tr);
+                        soldeActuel = parseFloat(f.solde_total || 0);
+                    });
+                }
+
+                // Mettre à jour le solde total affiché
+                document.getElementById("solde-total").textContent = soldeActuel.toFixed(2) + " €";
+            });
+        }
+
+        function chargerSoldeTotal() {
+            ajax("GET", "/fonds/solde-total", null, (data) => {
+                const solde = data.solde_total ? parseFloat(data.solde_total) : 0;
+                document.getElementById("solde-total").textContent = solde.toFixed(2) + " €";
+            });
+        }
+
+        function ajouterOuModifier() {
+            const id = document.getElementById("id").value;
+            const montant = document.getElementById("montant").value;
+            const date_ajout = document.getElementById("date_ajout").value;
+            const description = document.getElementById("description").value;
+
+            if (!montant || !date_ajout) {
+                alert("Veuillez remplir le montant et la date d'ajout.");
+                return;
+            }
+
+            const data = `montant=${encodeURIComponent(montant)}&date_ajout=${encodeURIComponent(date_ajout)}&description=${encodeURIComponent(description)}`;
+
+            if (id) {
+                ajax("PUT", `/fonds/${id}`, data, (response) => {
+                    resetForm();
+                    chargerFonds();
+                    chargerSoldeTotal();
+                    const nouveauSolde = response.nouveau_solde ? parseFloat(response.nouveau_solde).toFixed(2) : "0.00";
+                    alert("Fond modifié avec succès! Nouveau solde: " + nouveauSolde + " €");
+                });
+            } else {
+                ajax("POST", "/fonds", data, (response) => {
+                    resetForm();
+                    chargerFonds();
+                    chargerSoldeTotal();
+                    const nouveauSolde = response.nouveau_solde ? parseFloat(response.nouveau_solde).toFixed(2) : "0.00";
+                    alert("Fond ajouté avec succès! Nouveau solde: " + nouveauSolde + " €");
+                });
+            }
+        }
+
+        function remplirFormulaire(f) {
+            document.getElementById("id").value = f.id;
+            document.getElementById("montant").value = f.montant;
+            document.getElementById("date_ajout").value = f.date_ajout;
+            document.getElementById("description").value = f.description || '';
+        }
+
+        function supprimerFond(id) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer ce fond ?")) {
+                ajax("DELETE", `/fonds/${id}`, null, (response) => {
+                    chargerFonds();
+                    chargerSoldeTotal();
+                    const nouveauSolde = response.nouveau_solde ? parseFloat(response.nouveau_solde).toFixed(2) : "0.00";
+                    alert("Fond supprimé avec succès! Nouveau solde: " + nouveauSolde + " €");
+                });
+            }
+        }
+
+        function resetForm() {
+            document.getElementById("id").value = "";
+            document.getElementById("montant").value = "";
+            document.getElementById("date_ajout").value = "";
+            document.getElementById("description").value = "";
+        }
+
+        // Initialiser la date du jour
+        document.getElementById("date_ajout").value = new Date().toISOString().split('T')[0];
+
+        // Charger les fonds et le solde au démarrage
+        chargerFonds();
+        chargerSoldeTotal();
+    </script>
+
+</body>
+
+</html>

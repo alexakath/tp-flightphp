@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Prêts - EF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        input, select, button {
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        input[type="number"], select {
+            width: 180px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px 20px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-approve {
+            background-color: #27ae60;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .btn-reject {
+            background-color: #e74c3c;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #34495e;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .stats-section {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .stats-item {
+            display: inline-block;
+            margin: 0 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="570container">
+        <h1>Gestion des Prêts - Établissement Financier</h1>
+
+        <div class="stats-section">
+            <div class="(city: 0px; font-family: monospace; font-size: 0.9em;">Solde Total: <span id="solde-total">0.00 €</span></div>
+            <div class="stats-item">
+                Total Prêts: <span id="total-prets">0</span>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Soumettre une Demande de Prêt</h3>
+            <div class="form-row">
+                <select id="client_id" required>
+                    <option value="">Sélectionner un client</option>
+                </select>
+                <select id="type_pret_id" required>
+                    <option value="">Sélectionner un type de prêt</option>
+                </select>
+                <input type="number" id="montant" placeholder="Montant (€)" step="0.01" min="0" required>
+            </div>
+            <div class="form-row">
+                <input type="number" id="duree" placeholder="Durée (mois)" min="1" required>
+                <input type="date" id="date_debut" placeholder="Date de début" required>
+            </div>
+            <div class="form-row">
+                <button onclick="soumettrePret()">Soumettre</button>
+                <button onclick="resetForm()" style="background-color: #95a5a6;">Annuler</button>
+            </div>
+        </div>
+
+        <div id="error-container"></div>
+
+        <table id="table-prets">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Client</th>
+                    <th>Type de Prêt</th>
+                    <th>Montant</th>
+                    <th>Durée</th>
+                    <th>Date de Début</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const apiBase = "http://localhost/tp-flightphp/ws";
+
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            setTimeout(() => errorContainer.innerHTML = '', 5000);
+        }
+
+        function ajax(method, url, data, callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open(method, apiBase + url, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            callback(response);
+                        } catch (e) {
+                            console.error("Erreur de parsing JSON:", e);
+                            showError("Erreur de communication avec le serveur");
+                        }
+                    } else {
+                        console.error("Erreur HTTP:", xhr.status, xhr.statusText);
+                        showError(`Erreur de communication avec le serveur (HTTP ${xhr.status})`);
+                    }
+                }
+            };
+            xhr.send(data);
+        }
+
+        function chargerSoldeTotal() {
+            ajax("GET", "/fonds/solde-total", null, (data) => {
+                const solde = data.solde_total ? parseFloat(data.solde_total).toFixed(2) : "0.00";
+                document.getElementById("solde-total").textContent = solde + " €";
+            });
+        }
+
+        function chargerClients() {
+            ajax("GET", "/clients", null, (data) => {
+                const select = document.getElementById("client_id");
+                select.innerHTML = '<option value="">Sélectionner un client</option>';
+                if (data && data.length > 0) {
+                    data.forEach(client => {
+                        const option = document.createElement("option");
+                        option.value = client.id;
+                        option.textContent = client.nom;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        function chargerTypesPret() {
+            ajax("GET", "/types-pret", null, (data) => {
+                const select = document.getElementById("type_pret_id");
+                select.innerHTML = '<option value="">Sélectionner un type de prêt</option>';
+                if (data && data.length > 0) {
+                    data.forEach(type => {
+                        const option = document.createElement("option");
+                        option.value = type.id;
+                        option.textContent = type.nom;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        function chargerPrets() {
+            ajax("GET", "/prets", null, (data) => {
+                const tbody = document.querySelector("#table-prets tbody");
+                tbody.innerHTML = "";
+                document.getElementById("total-prets").textContent = data ? data.length : 0;
+
+                if (data && data.length > 0) {
+                    data.forEach(pret => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${pret.id}</td>
+                            <td>${pret.client_nom}</td>
+                            <td>${pret.type_pret_nom}</td>
+                            <td>${parseFloat(pret.montant).toFixed(2)} €</td>
+                            <td>${pret.duree} mois</td>
+                            <td>${pret.date_debut}</td>
+                            <td>${pret.statut}</td>
+                            <td>
+                                ${pret.statut === 'en_attente' ? `
+                                    <button class="btn-approve" onclick="updatePretStatus(${pret.id}, 'approuve')">✔️ Approuver</button>
+                                    <button class="btn-reject" onclick="updatePretStatus(${pret.id}, 'rejete')">❌ Rejeter</button>
+                                ` : ''}
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            });
+        }
+
+        function soumettrePret() {
+            const client_id = document.getElementById("client_id").value;
+            const type_pret_id = document.getElementById("type_pret_id").value;
+            const montant = document.getElementById("montant").value;
+            const duree = document.getElementById("duree").value;
+            const date_debut = document.getElementById("date_debut").value;
+
+            if (!client_id || !type_pret_id || !montant || !duree || !date_debut) {
+                showError("Veuillez remplir tous les champs obligatoires.");
+                return;
+            }
+
+            const data = `client_id=${encodeURIComponent(client_id)}&type_pret_id=${encodeURIComponent(type_pret_id)}&montant=${encodeURIComponent(montant)}&duree=${encodeURIComponent(duree)}&date_debut=${encodeURIComponent(date_debut)}`;
+
+            ajax("POST", "/prets", data, (response) => {
+                if (response.error) {
+                    showError(response.error);
+                } else {
+                    resetForm();
+                    chargerPrets();
+                    chargerSoldeTotal();
+                    alert("Demande de prêt soumise avec succès !");
+                }
+            });
+        }
+
+        function updatePretStatus(id, statut) {
+            const action = statut === 'approuve' ? 'approuver' : 'rejeter';
+            if (confirm(`Êtes-vous sûr de vouloir ${action} ce prêt ?`)) {
+                ajax("PUT", `/prets/${id}`, `statut=${encodeURIComponent(statut)}`, (response) => {
+                    if (response.error) {
+                        showError(response.error);
+                    } else {
+                        chargerPrets();
+                        chargerSoldeTotal();
+                        alert(`Prêt ${action} avec succès !`);
+                    }
+                });
+            }
+        }
+
+        function resetForm() {
+            document.getElementById("client_id").value = "";
+            document.getElementById("type_pret_id").value = "";
+            document.getElementById("montant").value = "";
+            document.getElementById("duree").value = "";
+            document.getElementById("date_debut").value = new Date().toISOString().split('T')[0];
+        }
+
+        // Initialiser la date du jour
+        document.getElementById("date_debut").value = new Date().toISOString().split('T')[0];
+
+        // Charger les données au démarrage
+        chargerSoldeTotal();
+        chargerClients();
+        chargerTypesPret();
+        chargerPrets();
+    </script>
+</body>
+</html>

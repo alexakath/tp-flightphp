@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Types de Prêts - EF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        input,
+        button {
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        input[type="text"],
+        input[type="number"] {
+            width: 180px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px 20px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-edit {
+            background-color: #f39c12;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .btn-delete {
+            background-color: #e74c3c;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #34495e;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .stats-section {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .stats-item {
+            display: inline-block;
+            margin: 0 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Gestion des Types de Prêts de l'Établissement Financier</h1>
+
+        <div class="stats-section">
+            <div class="stats-item">
+                <span id="total-types">0</span> Types de Prêts
+            </div>
+            <div class="stats-item">
+                Taux moyen: <span id="taux-moyen">0.00%</span>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Ajouter / Modifier un Type de Prêt</h3>
+            <input type="hidden" id="id">
+
+            <div class="form-row">
+                <input type="text" id="nom" placeholder="Nom du type de prêt" required>
+                <input type="number" id="taux_annuel" placeholder="Taux annuel (%)" step="0.01" min="0" max="100" required>
+                <input type="number" id="duree_max_mois" placeholder="Durée max (mois)" min="1" required>
+            </div>
+
+            <div class="form-row">
+                <input type="number" id="montant_min" placeholder="Montant min (€)" step="0.01" min="0" required>
+                <input type="number" id="montant_max" placeholder="Montant max (€)" step="0.01" min="0" required>
+            </div>
+
+            <div class="form-row">
+                <button onclick="ajouterOuModifier()">Ajouter / Modifier</button>
+                <button onclick="resetForm()" style="background-color: #95a5a6;">Annuler</button>
+            </div>
+        </div>
+
+        <div id="error-container"></div>
+
+        <table id="table-types-pret">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Taux Annuel</th>
+                    <th>Durée Max</th>
+                    <th>Montant Min</th>
+                    <th>Montant Max</th>
+                    <th>Date de création</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const apiBase = "http://localhost/tp-flightphp/ws"; // Correction du chemin API
+
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            setTimeout(() => {
+                errorContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        function ajax(method, url, data, callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open(method, apiBase + url, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            callback(response);
+                        } catch (e) {
+                            console.error("Erreur de parsing JSON:", e);
+                            console.error("Réponse reçue:", xhr.responseText);
+                            showError("Erreur de communication avec le serveur");
+                        }
+                    } else {
+                        console.error("Erreur HTTP:", xhr.status, xhr.statusText);
+                        console.error("Réponse:", xhr.responseText);
+                        showError(`Erreur de communication avec le serveur (HTTP ${xhr.status})`);
+                    }
+                }
+            };
+            xhr.send(data);
+        }
+
+        function chargerTypesPret() {
+            ajax("GET", "/types-pret", null, (data) => {
+                const tbody = document.querySelector("#table-types-pret tbody");
+                tbody.innerHTML = "";
+
+                let totalTaux = 0;
+
+                if (data && data.length > 0) {
+                    data.forEach(type => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${type.id}</td>
+                            <td>${type.nom}</td>
+                            <td>${parseFloat(type.taux_annuel).toFixed(2)}%</td>
+                            <td>${type.duree_max_mois} mois</td>
+                            <td>${parseFloat(type.montant_min).toFixed(2)} €</td>
+                            <td>${parseFloat(type.montant_max).toFixed(2)} €</td>
+                            <td>${type.created_at}</td>
+                            <td>
+                                <button class="btn-edit" onclick='remplirFormulaire(${JSON.stringify(type).replace(/'/g, "\\'")})''>✏️ Modifier</button>
+                                <button class="btn-delete" onclick='supprimerTypePret(${type.id})'>🗑️ Supprimer</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                        totalTaux += parseFloat(type.taux_annuel);
+                    });
+                }
+
+                // Mettre à jour les statistiques
+                document.getElementById("total-types").textContent = data ? data.length : 0;
+                const tauxMoyen = (data && data.length > 0) ? (totalTaux / data.length).toFixed(2) : 0;
+                document.getElementById("taux-moyen").textContent = tauxMoyen + "%";
+            });
+        }
+
+        function ajouterOuModifier() {
+            const id = document.getElementById("id").value;
+            const nom = document.getElementById("nom").value.trim();
+            const taux_annuel = document.getElementById("taux_annuel").value;
+            const duree_max_mois = document.getElementById("duree_max_mois").value;
+            const montant_min = document.getElementById("montant_min").value;
+            const montant_max = document.getElementById("montant_max").value;
+
+            // Validation
+            if (!nom || !taux_annuel || !duree_max_mois || !montant_min || !montant_max) {
+                showError("Veuillez remplir tous les champs obligatoires.");
+                return;
+            }
+
+            if (parseFloat(montant_min) >= parseFloat(montant_max)) {
+                showError("Le montant minimum doit être inférieur au montant maximum.");
+                return;
+            }
+
+            if (parseFloat(taux_annuel) < 0 || parseFloat(taux_annuel) > 100) {
+                showError("Le taux annuel doit être compris entre 0 et 100%.");
+                return;
+            }
+
+            const data = `nom=${encodeURIComponent(nom)}&taux_annuel=${encodeURIComponent(taux_annuel)}&duree_max_mois=${encodeURIComponent(duree_max_mois)}&montant_min=${encodeURIComponent(montant_min)}&montant_max=${encodeURIComponent(montant_max)}`;
+
+            console.log("Données envoyées:", data); // Debug
+
+            if (id) {
+                ajax("PUT", `/types-pret/${id}`, data, (response) => {
+                    resetForm();
+                    chargerTypesPret();
+                    alert("Type de prêt modifié avec succès!");
+                });
+            } else {
+                ajax("POST", "/types-pret", data, (response) => {
+                    resetForm();
+                    chargerTypesPret();
+                    alert("Type de prêt ajouté avec succès!");
+                });
+            }
+        }
+
+        function remplirFormulaire(type) {
+            document.getElementById("id").value = type.id;
+            document.getElementById("nom").value = type.nom;
+            document.getElementById("taux_annuel").value = type.taux_annuel;
+            document.getElementById("duree_max_mois").value = type.duree_max_mois;
+            document.getElementById("montant_min").value = type.montant_min;
+            document.getElementById("montant_max").value = type.montant_max;
+        }
+
+        function supprimerTypePret(id) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer ce type de prêt ?")) {
+                ajax("DELETE", `/types-pret/${id}`, null, () => {
+                    chargerTypesPret();
+                    alert("Type de prêt supprimé avec succès!");
+                });
+            }
+        }
+
+        function resetForm() {
+            document.getElementById("id").value = "";
+            document.getElementById("nom").value = "";
+            document.getElementById("taux_annuel").value = "";
+            document.getElementById("duree_max_mois").value = "";
+            document.getElementById("montant_min").value = "";
+            document.getElementById("montant_max").value = "";
+        }
+
+        // Charger les types de prêts au démarrage
+        chargerTypesPret();
+    </script>
+
+</body>
+
+</html>
