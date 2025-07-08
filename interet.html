@@ -7,170 +7,163 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            color: #2d3748;
         }
         
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-out forwards;
         }
         
         h1 {
-            color: #2c3e50;
             text-align: center;
+            font-size: 2.5em;
+            font-weight: 300;
+            color: white;
             margin-bottom: 30px;
         }
         
-        .filter-section {
-            background-color: #f8f9fa;
+        .filter-section,
+        .chart-section,
+        .stats-section {
+            background-color: rgba(255, 255, 255, 0.8);
             padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         
         .filter-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-        
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            gap: 20px;
         }
         
         .filter-group label {
-            font-weight: bold;
-            color: #34495e;
+            font-weight: 600;
             font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
         }
         
         input,
         select,
         button {
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
             font-size: 14px;
         }
         
         input[type="month"] {
-            width: 160px;
+            width: 170px;
         }
         
         button {
-            background-color: #3498db;
-            color: white;
+            background-color: #2575fc;
+            color: #fff;
             border: none;
             cursor: pointer;
-            padding: 10px 20px;
-            margin-top: 20px;
+            padding: 10px 25px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
         
         button:hover {
-            background-color: #2980b9;
-        }
-        
-        .stats-section {
-            background-color: #e8f5e8;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
+            background-color: #1d5edb;
+            transform: translateY(-2px);
         }
         
         .stats-item {
             display: inline-block;
-            margin: 0 20px;
+            margin: 10px 30px;
             font-size: 18px;
             font-weight: bold;
-            color: #27ae60;
-        }
-        
-        .chart-section {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            color: #2ecc71;
         }
         
         .chart-container {
-            position: relative;
             height: 400px;
-            margin: 20px 0;
         }
         
         table {
-            border-collapse: collapse;
             width: 100%;
-            margin-top: 20px;
+            border-collapse: collapse;
+            margin-top: 25px;
+            background-color: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
         
-        th,
+        th {
+            background-color: #2575fc;
+            color: white;
+            padding: 14px;
+            text-align: center;
+        }
+        
         td {
-            border: 1px solid #ddd;
             padding: 12px;
             text-align: left;
         }
         
-        th {
-            background-color: #34495e;
-            color: white;
-            text-align: center;
-        }
-        
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #f0f4ff;
         }
         
         .montant-cell {
             text-align: right;
             font-weight: bold;
-            color: #27ae60;
+            color: #2ecc71;
         }
         
         .total-row {
-            background-color: #d4edda !important;
+            background-color: #d4edda;
             font-weight: bold;
         }
         
         .total-row td {
-            background-color: #d4edda;
             color: #155724;
+        }
+        
+        .periode-info {
+            background-color: #cce5ff;
+            border: 1px solid #b8daff;
+            padding: 10px;
+            color: #004085;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }
         
         .error-message {
             background-color: #f8d7da;
             color: #721c24;
             padding: 10px;
-            border-radius: 4px;
-            margin: 10px 0;
+            border-radius: 8px;
             border: 1px solid #f5c6cb;
+            margin-bottom: 15px;
+            text-align: center;
         }
         
         .no-data {
             text-align: center;
-            color: #6c757d;
+            color: #555;
             font-style: italic;
             padding: 20px;
-        }
-        
-        .periode-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            border: 1px solid #bee5eb;
         }
     </style>
 </head>
@@ -219,12 +212,13 @@
         </div>
 
         <table id="table-interets" style="display: none;">
-            <tr>
-                <th>Mois</th>
-                <th>Année</th>
-                <th>Nombre de Prêts Actifs</th>
-                <th>Intérêts Gagnés</th>
-            </tr>
+            <thead>
+                <tr>
+                    <th>Mois</th>
+                    <th>Année</th>
+                    <th>Nombre de Prêts Actifs</th>
+                    <th>Intérêts Gagnés</th>
+                </tr>
             </thead>
             <tbody></tbody>
         </table>
@@ -232,254 +226,240 @@
         <div id="no-data" class="no-data" style="display: none;">
             Aucune donnée disponible pour la période sélectionnée.
         </div>
+    </div>
 
-        <script>
-            const apiBase = "http://localhost/tp-flightphp/ws";
-            let interetsChart = null;
+    <script>
+        const apiBase = "http://localhost/tp-flightphp/ws";
+        let interetsChart = null;
+        let donneesInterets = [];
 
-            function showError(message) {
-                const errorContainer = document.getElementById('error-container');
-                errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
-                setTimeout(() => errorContainer.innerHTML = '', 5000);
-            }
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            setTimeout(() => errorContainer.innerHTML = '', 5000);
+        }
 
-            function ajax(method, url, data, callback) {
-                const xhr = new XMLHttpRequest();
-                xhr.open(method, apiBase + url, true);
-                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-                xhr.onreadystatechange = () => {
-                    if (xhr.readyState === 4) {
-                        if (xhr.status === 200) {
-                            try {
-                                const response = JSON.parse(xhr.responseText);
-                                callback(response);
-                            } catch (e) {
-                                console.error("Erreur de parsing JSON:", e);
-                                showError("Erreur de communication avec le serveur");
-                            }
-                        } else {
-                            console.error("Erreur HTTP:", xhr.status, xhr.statusText);
-                            showError(`Erreur de communication avec le serveur (HTTP ${xhr.status})`);
+        function ajax(method, url, data, callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open(method, apiBase + url, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            callback(response);
+                        } catch (e) {
+                            console.error("Erreur de parsing JSON:", e);
+                            showError("Erreur de communication avec le serveur");
                         }
+                    } else {
+                        console.error("Erreur HTTP:", xhr.status, xhr.statusText);
+                        showError(`Erreur de communication avec le serveur (HTTP ${xhr.status})`);
                     }
-                };
-                xhr.send(data);
+                }
+            };
+            xhr.send(data);
+        }
+
+        function chargerInterets() {
+            const moisDebut = document.getElementById('mois-debut').value;
+            const moisFin = document.getElementById('mois-fin').value;
+
+            if (!moisDebut || !moisFin) {
+                showError("Veuillez sélectionner les mois de début et de fin.");
+                return;
             }
 
-            function chargerInterets() {
-                const moisDebut = document.getElementById('mois-debut').value;
-                const moisFin = document.getElementById('mois-fin').value;
-
-                if (!moisDebut || !moisFin) {
-                    showError("Veuillez sélectionner les mois de début et de fin.");
-                    return;
-                }
-
-                if (moisDebut > moisFin) {
-                    showError("Le mois de début ne peut pas être postérieur au mois de fin.");
-                    return;
-                }
-
-                const data = `mois_debut=${encodeURIComponent(moisDebut)}&mois_fin=${encodeURIComponent(moisFin)}`;
-
-                ajax("GET", `/interets-mensuels?${data}`, null, (response) => {
-                    if (response.error) {
-                        showError(response.error);
-                        return;
-                    }
-
-                    donneesInterets = response.data || [];
-                    afficherTableauInterets(donneesInterets);
-                    afficherStatistiques(response.stats);
-                    afficherInfoPeriode(moisDebut, moisFin);
-                    afficherGraphique(donneesInterets);
-                });
+            if (moisDebut > moisFin) {
+                showError("Le mois de début ne peut pas être postérieur au mois de fin.");
+                return;
             }
 
-            function afficherTableauInterets(data) {
-                const table = document.getElementById('table-interets');
-                const tbody = table.querySelector('tbody');
-                const noData = document.getElementById('no-data');
+            const data = `mois_debut=${encodeURIComponent(moisDebut)}&mois_fin=${encodeURIComponent(moisFin)}`;
 
-                tbody.innerHTML = '';
-
-                if (!data || data.length === 0) {
-                    table.style.display = 'none';
-                    noData.style.display = 'block';
+            ajax("GET", `/interets-mensuels?${data}`, null, (response) => {
+                if (response.error) {
+                    showError(response.error);
                     return;
                 }
 
-                noData.style.display = 'none';
-                table.style.display = 'table';
+                donneesInterets = response.data || [];
+                afficherTableauInterets(donneesInterets);
+                afficherStatistiques(response.stats);
+                afficherInfoPeriode(moisDebut, moisFin);
+                afficherGraphique(donneesInterets);
+            });
+        }
 
-                let totalInterets = 0;
+        function afficherTableauInterets(data) {
+            const table = document.getElementById('table-interets');
+            const tbody = table.querySelector('tbody');
+            const noData = document.getElementById('no-data');
 
-                data.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
+            tbody.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                table.style.display = 'none';
+                noData.style.display = 'block';
+                return;
+            }
+
+            noData.style.display = 'none';
+            table.style.display = 'table';
+
+            let totalInterets = 0;
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
                     <td>${getNomMois(item.mois)}</td>
                     <td>${item.annee}</td>
                     <td style="text-align: center;">${item.nombre_prets_actifs}</td>
                     <td class="montant-cell">${parseFloat(item.interets_gagnes).toFixed(2)} €</td>
                 `;
-                    tbody.appendChild(tr);
-                    totalInterets += parseFloat(item.interets_gagnes);
-                });
+                tbody.appendChild(tr);
+                totalInterets += parseFloat(item.interets_gagnes);
+            });
 
-                // Ajouter une ligne de total
-                const totalRow = document.createElement('tr');
-                totalRow.className = 'total-row';
-                totalRow.innerHTML = `
-                <td colspan="3" style="text-align: right; font-weight: bold;">TOTAL :</td>
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'total-row';
+            totalRow.innerHTML = `
+                <td colspan="3" style="text-align: right;">TOTAL :</td>
                 <td class="montant-cell">${totalInterets.toFixed(2)} €</td>
             `;
-                tbody.appendChild(totalRow);
+            tbody.appendChild(totalRow);
+        }
+
+        function afficherStatistiques(stats) {
+            const statsSection = document.getElementById('stats-section');
+
+            if (!stats) {
+                statsSection.style.display = 'none';
+                return;
             }
 
-            function afficherStatistiques(stats) {
-                const statsSection = document.getElementById('stats-section');
+            statsSection.style.display = 'block';
+            document.getElementById('total-interets').textContent = parseFloat(stats.total_interets).toFixed(2) + ' €';
+            document.getElementById('nombre-mois').textContent = stats.nombre_mois;
+            document.getElementById('moyenne-mensuelle').textContent = parseFloat(stats.moyenne_mensuelle).toFixed(2) + ' €';
+        }
 
-                if (!stats) {
-                    statsSection.style.display = 'none';
-                    return;
-                }
+        function afficherInfoPeriode(moisDebut, moisFin) {
+            const periodeInfo = document.getElementById('periode-info');
+            const dateDebut = new Date(moisDebut + '-01');
+            const dateFin = new Date(moisFin + '-01');
 
-                statsSection.style.display = 'block';
-                document.getElementById('total-interets').textContent = parseFloat(stats.total_interets).toFixed(2) + ' €';
-                document.getElementById('nombre-mois').textContent = stats.nombre_mois;
-                document.getElementById('moyenne-mensuelle').textContent = parseFloat(stats.moyenne_mensuelle).toFixed(2) + ' €';
-            }
-
-            function afficherInfoPeriode(moisDebut, moisFin) {
-                const periodeInfo = document.getElementById('periode-info');
-                const dateDebut = new Date(moisDebut + '-01');
-                const dateFin = new Date(moisFin + '-01');
-
-                periodeInfo.innerHTML = `
+            periodeInfo.innerHTML = `
                 <strong>Période analysée :</strong> 
                 ${getNomMois(dateDebut.getMonth() + 1)} ${dateDebut.getFullYear()} 
                 - ${getNomMois(dateFin.getMonth() + 1)} ${dateFin.getFullYear()}
             `;
-                periodeInfo.style.display = 'block';
+            periodeInfo.style.display = 'block';
+        }
+
+        function afficherGraphique(data) {
+            const chartSection = document.getElementById('chart-section');
+
+            if (!data || data.length === 0) {
+                chartSection.style.display = 'none';
+                return;
             }
 
-            function afficherGraphique(data) {
-                const chartSection = document.getElementById('chart-section');
+            chartSection.style.display = 'block';
 
-                if (!data || data.length === 0) {
-                    chartSection.style.display = 'none';
-                    return;
-                }
+            if (interetsChart) {
+                interetsChart.destroy();
+            }
 
-                chartSection.style.display = 'block';
+            const labels = data.map(item => `${getNomMois(item.mois)} ${item.annee}`);
+            const interetsData = data.map(item => parseFloat(item.interets_gagnes));
 
-                // Détruire le graphique existant s'il existe
-                if (interetsChart) {
-                    interetsChart.destroy();
-                }
-
-                // Préparer les données pour le graphique
-                const labels = data.map(item => `${getNomMois(item.mois)} ${item.annee}`);
-                const interetsData = data.map(item => parseFloat(item.interets_gagnes));
-
-                // Créer le graphique
-                const ctx = document.getElementById('interetsChart').getContext('2d');
-                interetsChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Intérêts Gagnés (€)',
-                            data: interetsData,
-                            backgroundColor: 'rgba(39, 174, 96, 0.8)',
-                            borderColor: 'rgba(39, 174, 96, 1)',
-                            borderWidth: 1
-                        }]
+            const ctx = document.getElementById('interetsChart').getContext('2d');
+            interetsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Intérêts Gagnés (€)',
+                        data: interetsData,
+                        backgroundColor: 'rgba(39, 174, 96, 0.8)',
+                        borderColor: 'rgba(39, 174, 96, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} €`
+                            }
+                        }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top'
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} €`;
-                                    }
-                                }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: value => value.toFixed(2) + ' €'
                             }
                         },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return value.toFixed(2) + ' €';
-                                    }
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    maxRotation: 45,
-                                    minRotation: 45
-                                }
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
                             }
                         }
                     }
-                });
-            }
-
-            function getNomMois(numMois) {
-                const mois = [
-                    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-                    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-                ];
-                return mois[numMois - 1];
-            }
-
-            function exporterCSV() {
-                if (!donneesInterets || donneesInterets.length === 0) {
-                    showError("Aucune donnée à exporter. Veuillez d'abord générer un rapport.");
-                    return;
                 }
+            });
+        }
 
-                let csv = "Mois,Année,Nombre de Prêts Actifs,Intérêts Gagnés (€)\n";
+        function getNomMois(numMois) {
+            const mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            return mois[numMois - 1];
+        }
 
-                donneesInterets.forEach(item => {
-                    csv += `${getNomMois(item.mois)},${item.annee},${item.nombre_prets_actifs},${parseFloat(item.interets_gagnes).toFixed(2)}\n`;
-                });
-
-                // Créer et télécharger le fichier CSV
-                const blob = new Blob([csv], {
-                    type: 'text/csv;charset=utf-8;'
-                });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', `interets_mensuels_${new Date().toISOString().split('T')[0]}.csv`);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+        function exporterCSV() {
+            if (!donneesInterets || donneesInterets.length === 0) {
+                showError("Aucune donnée à exporter. Veuillez d'abord générer un rapport.");
+                return;
             }
 
-            // Initialiser les dates par défaut
-            function initialiserDates() {
-                const aujourdhui = new Date();
-                const moisCourant = aujourdhui.getFullYear() + '-' + String(aujourdhui.getMonth() + 1).padStart(2, '0');
-                const moisPrecedent = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth() - 11, 1);
-                const moisDebut = moisPrecedent.getFullYear() + '-' + String(moisPrecedent.getMonth() + 1).padStart(2, '0');
+            let csv = "Mois,Année,Nombre de Prêts Actifs,Intérêts Gagnés (€)\n";
 
-                document.getElementById('mois-debut').value = moisDebut;
-                document.getElementById('mois-fin').value = moisCourant;
-            }
+            donneesInterets.forEach(item => {
+                csv += `${getNomMois(item.mois)},${item.annee},${item.nombre_prets_actifs},${parseFloat(item.interets_gagnes).toFixed(2)}\n`;
+            });
 
-            // Initialiser au chargement de la page
-            initialiserDates();
-        </script>
+            const blob = new Blob([csv], {
+                type: 'text/csv;charset=utf-8;'
+            });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `interets_mensuels_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function initialiserDates() {
+            const aujourdhui = new Date();
+            const moisCourant = aujourdhui.getFullYear() + '-' + String(aujourdhui.getMonth() + 1).padStart(2, '0');
+            const moisPrecedent = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth() - 11, 1);
+            const moisDebut = moisPrecedent.getFullYear() + '-' + String(moisPrecedent.getMonth() + 1).padStart(2, '0');
+            document.getElementById('mois-debut').value = moisDebut;
+            document.getElementById('mois-fin').value = moisCourant;
+        }
+
+        initialiserDates();
+    </script>
 </body>
 
 </html>
