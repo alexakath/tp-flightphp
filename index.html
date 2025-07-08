@@ -2,278 +2,361 @@
 <html lang="fr">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Gestion des Fonds - EF</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bienvenue - Gestion des Fonds</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f5f5f5;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .welcome-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 50px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 1s ease-out;
+        }
+        
+        .welcome-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            animation: rotate 10s linear infinite;
+            z-index: -1;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .logo::before {
+            content: '₳';
+            font-size: 40px;
+            color: white;
+            font-weight: bold;
         }
         
         h1 {
             color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .form-section {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
+            font-size: 2.5em;
             margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: -1px;
         }
         
-        input,
-        button {
-            margin: 5px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        .subtitle {
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            font-weight: 500;
         }
         
-        input[type="text"],
-        input[type="number"],
-        input[type="date"] {
-            width: 200px;
+        .description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 50px;
+            font-size: 1.1em;
         }
         
-        button {
-            background-color: #3498db;
+        .btn-enter {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
+            padding: 15px 40px;
             border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
             cursor: pointer;
-            padding: 10px 20px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
         }
         
-        button:hover {
-            background-color: #2980b9;
+        .btn-enter:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
         }
         
-        .btn-edit {
-            background-color: #f39c12;
-            padding: 5px 10px;
-            font-size: 14px;
-        }
-        
-        .btn-delete {
-            background-color: #e74c3c;
-            padding: 5px 10px;
-            font-size: 14px;
-        }
-        
-        table {
-            border-collapse: collapse;
+        .btn-enter::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
             width: 100%;
-            margin-top: 20px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
         }
         
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
+        .btn-enter:hover::before {
+            left: 100%;
         }
         
-        th {
-            background-color: #34495e;
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .feature {
+            text-align: center;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out forwards;
+        }
+        
+        .feature:nth-child(1) {
+            animation-delay: 0.3s;
+        }
+        
+        .feature:nth-child(2) {
+            animation-delay: 0.6s;
+        }
+        
+        .feature:nth-child(3) {
+            animation-delay: 0.9s;
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
             color: white;
         }
         
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
+        .feature-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
         
-        .total-section {
-            background-color: #e8f5e8;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
+        .feature-desc {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
         }
         
-        .total-amount {
-            font-size: 24px;
-            font-weight: bold;
-            color: #27ae60;
+        .floating-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+        }
+        
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .shape1 {
+            width: 100px;
+            height: 100px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .shape2 {
+            width: 60px;
+            height: 60px;
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+        
+        .shape3 {
+            width: 80px;
+            height: 80px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .welcome-container {
+                padding: 40px 30px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .features {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
         }
     </style>
 </head>
 
 <body>
+    <div class="floating-shapes">
+        <div class="shape shape1"></div>
+        <div class="shape shape2"></div>
+        <div class="shape shape3"></div>
+    </div>
 
-    <div class="container">
-        <h1>Gestion des Fonds de l'Établissement Financier</h1>
+    <div class="welcome-container">
+        <div class="logo"></div>
 
-        <div class="total-section">
-            <h3>Solde Total Actuel</h3>
-            <div class="total-amount" id="solde-total">0.00 €</div>
+        <h1>Bienvenue</h1>
+        <p class="subtitle">Système de Gestion des Fonds</p>
+
+        <p class="description">
+            Accédez à votre plateforme de gestion financière professionnelle. Gérez vos fonds, surveillez vos investissements et prenez des décisions éclairées grâce à nos outils d'analyse avancés.
+        </p>
+
+        <a href="choix.html" class="btn-enter">Accéder au Système</a>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">Analyse</div>
+                <div class="feature-desc">Rapports détaillés et analyses en temps réel</div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">Sécurité</div>
+                <div class="feature-desc">Protection avancée de vos données financières</div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">📈</div>
+                <div class="feature-title">Performance</div>
+                <div class="feature-desc">Suivi optimisé de vos investissements</div>
+            </div>
         </div>
-
-        <div class="form-section">
-            <h3>Ajouter / Modifier un Fond</h3>
-            <input type="hidden" id="id">
-            <input type="number" id="montant" placeholder="Montant (€)" step="0.01" min="0">
-            <input type="date" id="date_ajout" placeholder="Date d'ajout">
-            <input type="text" id="description" placeholder="Description">
-            <button onclick="ajouterOuModifier()">Ajouter / Modifier</button>
-            <button onclick="resetForm()" style="background-color: #95a5a6;">Annuler</button>
-        </div>
-
-        <table id="table-fonds">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Montant</th>
-                    <th>Date d'ajout</th>
-                    <th>Description</th>
-                    <th>Date de création</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
     </div>
 
     <script>
-        const apiBase = "http://localhost/tp-flightphpCrud/ws";
+        // Animation d'entrée progressive
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.welcome-container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(50px)';
 
-        function ajax(method, url, data, callback) {
-            const xhr = new XMLHttpRequest();
-            xhr.open(method, apiBase + url, true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = () => {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            callback(response);
-                        } catch (e) {
-                            console.error("Erreur de parsing JSON:", e);
-                            console.error("Réponse reçue:", xhr.responseText);
-                            alert("Erreur de communication avec le serveur");
-                        }
-                    } else {
-                        console.error("Erreur HTTP:", xhr.status, xhr.statusText);
-                        alert("Erreur de communication avec le serveur (HTTP " + xhr.status + ")");
-                    }
-                }
-            };
-            xhr.send(data);
-        }
+            setTimeout(() => {
+                container.style.transition = 'all 1s ease-out';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
 
-        function chargerFonds() {
-            ajax("GET", "/fonds", null, (data) => {
-                const tbody = document.querySelector("#table-fonds tbody");
-                tbody.innerHTML = "";
+        // Effet de parallaxe subtil sur le mouvement de la souris
+        document.addEventListener('mousemove', function(e) {
+            const shapes = document.querySelectorAll('.shape');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
 
-                let soldeActuel = 0;
+            shapes.forEach((shape, index) => {
+                const speed = (index + 1) * 0.5;
+                const xOffset = (x - 0.5) * speed * 20;
+                const yOffset = (y - 0.5) * speed * 20;
 
-                if (data && data.length > 0) {
-                    data.forEach(f => {
-                        const tr = document.createElement("tr");
-                        tr.innerHTML = `
-            <td>${f.id}</td>
-            <td>${parseFloat(f.montant || 0).toFixed(2)} €</td>
-            <td>${f.date_ajout}</td>
-            <td>${f.description || '-'}</td>
-            <td>${f.created_at}</td>
-            <td>
-              <button class="btn-edit" onclick='remplirFormulaire(${JSON.stringify(f)})'>✏️ Modifier</button>
-              <button class="btn-delete" onclick='supprimerFond(${f.id})'>🗑️ Supprimer</button>
-            </td>
-          `;
-                        tbody.appendChild(tr);
-                        soldeActuel = parseFloat(f.solde_total || 0);
-                    });
-                }
-
-                // Mettre à jour le solde total affiché
-                document.getElementById("solde-total").textContent = soldeActuel.toFixed(2) + " €";
+                shape.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
             });
-        }
+        });
 
-        function chargerSoldeTotal() {
-            ajax("GET", "/fonds/solde-total", null, (data) => {
-                const solde = data.solde_total ? parseFloat(data.solde_total) : 0;
-                document.getElementById("solde-total").textContent = solde.toFixed(2) + " €";
-            });
-        }
-
-        function ajouterOuModifier() {
-            const id = document.getElementById("id").value;
-            const montant = document.getElementById("montant").value;
-            const date_ajout = document.getElementById("date_ajout").value;
-            const description = document.getElementById("description").value;
-
-            if (!montant || !date_ajout) {
-                alert("Veuillez remplir le montant et la date d'ajout.");
-                return;
-            }
-
-            const data = `montant=${encodeURIComponent(montant)}&date_ajout=${encodeURIComponent(date_ajout)}&description=${encodeURIComponent(description)}`;
-
-            if (id) {
-                ajax("PUT", `/fonds/${id}`, data, (response) => {
-                    resetForm();
-                    chargerFonds();
-                    chargerSoldeTotal();
-                    const nouveauSolde = response.nouveau_solde ? parseFloat(response.nouveau_solde).toFixed(2) : "0.00";
-                    alert("Fond modifié avec succès! Nouveau solde: " + nouveauSolde + " €");
-                });
-            } else {
-                ajax("POST", "/fonds", data, (response) => {
-                    resetForm();
-                    chargerFonds();
-                    chargerSoldeTotal();
-                    const nouveauSolde = response.nouveau_solde ? parseFloat(response.nouveau_solde).toFixed(2) : "0.00";
-                    alert("Fond ajouté avec succès! Nouveau solde: " + nouveauSolde + " €");
-                });
-            }
-        }
-
-        function remplirFormulaire(f) {
-            document.getElementById("id").value = f.id;
-            document.getElementById("montant").value = f.montant;
-            document.getElementById("date_ajout").value = f.date_ajout;
-            document.getElementById("description").value = f.description || '';
-        }
-
-        function supprimerFond(id) {
-            if (confirm("Êtes-vous sûr de vouloir supprimer ce fond ?")) {
-                ajax("DELETE", `/fonds/${id}`, null, (response) => {
-                    chargerFonds();
-                    chargerSoldeTotal();
-                    const nouveauSolde = response.nouveau_solde ? parseFloat(response.nouveau_solde).toFixed(2) : "0.00";
-                    alert("Fond supprimé avec succès! Nouveau solde: " + nouveauSolde + " €");
-                });
-            }
-        }
-
-        function resetForm() {
-            document.getElementById("id").value = "";
-            document.getElementById("montant").value = "";
-            document.getElementById("date_ajout").value = "";
-            document.getElementById("description").value = "";
-        }
-
-        // Initialiser la date du jour
-        document.getElementById("date_ajout").value = new Date().toISOString().split('T')[0];
-
-        // Charger les fonds et le solde au démarrage
-        chargerFonds();
-        chargerSoldeTotal();
+        // Redirection automatique après 10 secondes vers choix.html
+        setTimeout(() => {
+            window.location.href = 'choix.html';
+        }, 10000);
     </script>
-
 </body>
 
 </html>

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Gestion des Types de Prêts - EF</title>
+    <title>Gestion des Fonds - EF</title>
     <style>
         * {
             margin: 0;
@@ -41,7 +41,7 @@
             margin-bottom: 30px;
         }
         
-        .stats-section {
+        .total-section {
             background: rgba(255, 255, 255, 0.15);
             padding: 20px;
             border-radius: 16px;
@@ -50,12 +50,16 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
-        .stats-item {
-            display: inline-block;
-            margin: 0 20px;
-            font-size: 1.2em;
+        .total-section h3 {
+            color: #e0e0ff;
+            font-weight: 400;
+        }
+        
+        .total-amount {
+            font-size: 2em;
             font-weight: bold;
             color: #c6f6d5;
+            margin-top: 10px;
         }
         
         .form-section {
@@ -73,16 +77,10 @@
             margin-bottom: 20px;
         }
         
-        .form-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
         input,
         button {
             padding: 12px 16px;
+            margin: 10px 10px 10px 0;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.3);
             font-size: 1em;
@@ -129,9 +127,6 @@
         .btn-edit {
             background-color: #ecc94b;
             color: #1a202c;
-            margin-right: 10px;
-            font-size: 0.9em;
-            padding: 6px 12px;
         }
         
         .btn-edit:hover {
@@ -140,8 +135,6 @@
         
         .btn-delete {
             background-color: #f56565;
-            font-size: 0.9em;
-            padding: 6px 12px;
         }
         
         .btn-delete:hover {
@@ -171,6 +164,7 @@
             overflow: hidden;
             margin-top: 20px;
             border: 1px solid rgba(255, 255, 255, 0.3);
+            /* bordure globale */
         }
         
         th,
@@ -181,7 +175,9 @@
             background-color: rgba(255, 255, 255, 0.05);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             border-right: 1px solid rgba(255, 255, 255, 0.1);
+            /* bordure verticale */
         }
+        /* Suppression bordure droite sur dernière colonne */
         
         th:last-child,
         td:last-child {
@@ -195,15 +191,6 @@
         
         tr:hover {
             background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 10px;
-            border-radius: 4px;
-            margin: 10px 0;
-            border: 1px solid #f5c6cb;
         }
         
         @media (max-width: 768px) {
@@ -233,51 +220,35 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1>Gestion des Types de Prêts de l'Établissement Financier</h1>
 
-        <div class="stats-section">
-            <div class="stats-item">
-                <span id="total-types">0</span> Types de Prêts
-            </div>
-            <div class="stats-item">
-                Taux moyen: <span id="taux-moyen">0.00%</span>
-            </div>
+    <div class="container">
+        <h1>Gestion des Fonds</h1>
+
+        <div class="total-section">
+            <h3>Solde Total Actuel</h3>
+            <div class="total-amount" id="solde-total">0.00 €</div>
         </div>
 
         <div class="form-section">
-            <h3>Ajouter / Modifier un Type de Prêt</h3>
+            <h3>Ajouter / Modifier un Fond</h3>
             <input type="hidden" id="id">
-
-            <div class="form-row">
-                <input type="text" id="nom" placeholder="Nom du type de prêt" required>
-                <input type="number" id="taux_annuel" placeholder="Taux annuel (%)" step="0.01" min="0" max="100" required>
-                <input type="number" id="duree_max_mois" placeholder="Durée max (mois)" min="1" required>
-            </div>
-
-            <div class="form-row">
-                <input type="number" id="montant_min" placeholder="Montant min (€)" step="0.01" min="0" required>
-                <input type="number" id="montant_max" placeholder="Montant max (€)" step="0.01" min="0" required>
-            </div>
-
+            <input type="number" id="montant" placeholder="Montant (€)" step="0.01" min="0">
+            <input type="date" id="date_ajout">
+            <input type="text" id="description" placeholder="Description">
             <div class="form-buttons">
                 <button onclick="ajouterOuModifier()">✅ Ajouter / Modifier</button>
-                <button class="btn-cancel" onclick="resetForm()">❌ Annuler</button>
+                <button onclick="resetForm()" class="btn-cancel">❌ Annuler</button>
             </div>
         </div>
 
-        <div id="error-container"></div>
-
-        <table id="table-types-pret">
+        <table id="table-fonds">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nom</th>
-                    <th>Taux Annuel</th>
-                    <th>Durée Max</th>
-                    <th>Montant Min</th>
-                    <th>Montant Max</th>
-                    <th>Date de création</th>
+                    <th>Montant</th>
+                    <th>Date d'ajout</th>
+                    <th>Description</th>
+                    <th>Créé le</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -287,23 +258,11 @@
 
     <script>
         const apiBase = "http://localhost/tp-flightphp/ws";
-        let typesPretData = [];
-
-        function showError(message) {
-            const errorContainer = document.getElementById('error-container');
-            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
-            setTimeout(() => {
-                errorContainer.innerHTML = '';
-            }, 5000);
-        }
 
         function ajax(method, url, data, callback) {
             const xhr = new XMLHttpRequest();
             xhr.open(method, apiBase + url, true);
-            if (method === 'POST' || method === 'PUT') {
-                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            }
-
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
@@ -311,114 +270,111 @@
                             const response = JSON.parse(xhr.responseText);
                             callback(response);
                         } catch (e) {
-                            showError("Erreur de parsing JSON.");
+                            alert("Erreur JSON: " + e);
                         }
                     } else {
-                        showError("Erreur HTTP " + xhr.status);
+                        alert("Erreur HTTP: " + xhr.status);
                     }
                 }
             };
             xhr.send(data);
         }
 
-        function chargerTypesPret() {
-            ajax("GET", "/types-pret", null, (data) => {
-                typesPretData = data || [];
-                const tbody = document.querySelector("#table-types-pret tbody");
+        function chargerFonds() {
+            ajax("GET", "/fonds", null, (data) => {
+                const tbody = document.querySelector("#table-fonds tbody");
                 tbody.innerHTML = "";
-                let totalTaux = 0;
+                let soldeActuel = 0;
 
-                typesPretData.forEach(type => {
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                        <td>${type.id}</td>
-                        <td>${type.nom}</td>
-                        <td>${parseFloat(type.taux_annuel).toFixed(2)}%</td>
-                        <td>${type.duree_max_mois} mois</td>
-                        <td>${parseFloat(type.montant_min).toFixed(2)} €</td>
-                        <td>${parseFloat(type.montant_max).toFixed(2)} €</td>
-                        <td>${type.created_at}</td>
-                        <td>
-                            <button class="btn-edit" onclick="remplirFormulaire(${type.id})">✏️ Modifier</button>
-                            <button class="btn-delete" onclick="supprimerTypePret(${type.id})">🗑️ Supprimer</button>
-                        </td>`;
-                    tbody.appendChild(tr);
-                    totalTaux += parseFloat(type.taux_annuel);
-                });
+                if (data && data.length > 0) {
+                    data.forEach(f => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+              <td>${f.id}</td>
+              <td>${parseFloat(f.montant || 0).toFixed(2)} €</td>
+              <td>${f.date_ajout}</td>
+              <td>${f.description || '-'}</td>
+              <td>${f.created_at}</td>
+              <td>
+                <button class="btn-edit" onclick='remplirFormulaire(${JSON.stringify(f)})'>✏️</button>
+                <button class="btn-delete" onclick='supprimerFond(${f.id})'>🗑️</button>
+              </td>
+            `;
+                        tbody.appendChild(tr);
+                        soldeActuel = parseFloat(f.solde_total || 0);
+                    });
+                }
 
-                document.getElementById("total-types").textContent = typesPretData.length;
-                document.getElementById("taux-moyen").textContent =
-                    typesPretData.length > 0 ? (totalTaux / typesPretData.length).toFixed(2) + "%" : "0.00%";
+                document.getElementById("solde-total").textContent = soldeActuel.toFixed(2) + " €";
+            });
+        }
+
+        function chargerSoldeTotal() {
+            ajax("GET", "/fonds/solde-total", null, (data) => {
+                const solde = data.solde_total ? parseFloat(data.solde_total) : 0;
+                document.getElementById("solde-total").textContent = solde.toFixed(2) + " €";
             });
         }
 
         function ajouterOuModifier() {
             const id = document.getElementById("id").value;
-            const nom = document.getElementById("nom").value.trim();
-            const taux_annuel = document.getElementById("taux_annuel").value;
-            const duree_max_mois = document.getElementById("duree_max_mois").value;
-            const montant_min = document.getElementById("montant_min").value;
-            const montant_max = document.getElementById("montant_max").value;
+            const montant = document.getElementById("montant").value;
+            const date_ajout = document.getElementById("date_ajout").value;
+            const description = document.getElementById("description").value;
 
-            if (!nom || !taux_annuel || !duree_max_mois || !montant_min || !montant_max) {
-                showError("Veuillez remplir tous les champs.");
+            if (!montant || !date_ajout) {
+                alert("Veuillez remplir le montant et la date d'ajout.");
                 return;
             }
 
-            if (parseFloat(montant_min) >= parseFloat(montant_max)) {
-                showError("Le montant min doit être < montant max.");
-                return;
-            }
-
-            const data = `nom=${encodeURIComponent(nom)}&taux_annuel=${taux_annuel}&duree_max_mois=${duree_max_mois}&montant_min=${montant_min}&montant_max=${montant_max}`;
+            const data = `montant=${encodeURIComponent(montant)}&date_ajout=${encodeURIComponent(date_ajout)}&description=${encodeURIComponent(description)}`;
 
             if (id) {
-                ajax("PUT", `/types-pret/${id}`, data, () => {
+                ajax("PUT", `/fonds/${id}`, data, () => {
                     resetForm();
-                    chargerTypesPret();
-                    alert("Type de prêt modifié avec succès !");
+                    chargerFonds();
+                    chargerSoldeTotal();
+                    alert("Fond modifié !");
                 });
             } else {
-                ajax("POST", "/types-pret", data, () => {
+                ajax("POST", "/fonds", data, () => {
                     resetForm();
-                    chargerTypesPret();
-                    alert("Type de prêt ajouté avec succès !");
+                    chargerFonds();
+                    chargerSoldeTotal();
+                    alert("Fond ajouté !");
                 });
             }
         }
 
-        function remplirFormulaire(id) {
-            const type = typesPretData.find(t => t.id === id);
-            if (type) {
-                document.getElementById("id").value = type.id;
-                document.getElementById("nom").value = type.nom;
-                document.getElementById("taux_annuel").value = type.taux_annuel;
-                document.getElementById("duree_max_mois").value = type.duree_max_mois;
-                document.getElementById("montant_min").value = type.montant_min;
-                document.getElementById("montant_max").value = type.montant_max;
-            }
+        function remplirFormulaire(f) {
+            document.getElementById("id").value = f.id;
+            document.getElementById("montant").value = f.montant;
+            document.getElementById("date_ajout").value = f.date_ajout;
+            document.getElementById("description").value = f.description || '';
         }
 
-        function supprimerTypePret(id) {
-            if (confirm("Confirmer la suppression ?")) {
-                ajax("DELETE", `/types-pret/${id}`, null, () => {
-                    chargerTypesPret();
-                    alert("Type de prêt supprimé !");
+        function supprimerFond(id) {
+            if (confirm("Supprimer ce fond ?")) {
+                ajax("DELETE", `/fonds/${id}`, null, () => {
+                    chargerFonds();
+                    chargerSoldeTotal();
+                    alert("Fond supprimé !");
                 });
             }
         }
 
         function resetForm() {
             document.getElementById("id").value = "";
-            document.getElementById("nom").value = "";
-            document.getElementById("taux_annuel").value = "";
-            document.getElementById("duree_max_mois").value = "";
-            document.getElementById("montant_min").value = "";
-            document.getElementById("montant_max").value = "";
+            document.getElementById("montant").value = "";
+            document.getElementById("date_ajout").value = "";
+            document.getElementById("description").value = "";
         }
 
-        window.onload = chargerTypesPret;
+        document.getElementById("date_ajout").value = new Date().toISOString().split('T')[0];
+        chargerFonds();
+        chargerSoldeTotal();
     </script>
+
 </body>
 
 </html>

@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu Principal - Gestion Financière</title>
     <style>
+        /* Styles CSS (inchangés) */
+        
         * {
             margin: 0;
             padding: 0;
@@ -322,7 +324,8 @@
 
     <div class="container">
         <div class="menu-grid">
-            <div class="menu-card" onclick="navigateTo('gestion-fonds.html')">
+            <!-- GESTION DE FONDS -->
+            <div class="menu-card">
                 <div class="menu-icon">💰</div>
                 <h2 class="menu-title">Gestion de Fonds</h2>
                 <p class="menu-description">
@@ -334,10 +337,11 @@
                     <li>Rapports détaillés</li>
                     <li>Allocation d'actifs</li>
                 </ul>
-                <button class="menu-btn">Accéder</button>
+                <button class="menu-btn" onclick="navigateTo('fond.html')">Accéder</button>
             </div>
 
-            <div class="menu-card" onclick="navigateTo('types-pret.html')">
+            <!-- TYPES DE PRÊT -->
+            <div class="menu-card">
                 <div class="menu-icon">📋</div>
                 <h2 class="menu-title">Gestion des Types de Prêt</h2>
                 <p class="menu-description">
@@ -349,10 +353,11 @@
                     <li>Taux d'intérêt</li>
                     <li>Critères d'éligibilité</li>
                 </ul>
-                <button class="menu-btn">Accéder</button>
+                <button class="menu-btn" onclick="navigateTo('types_pret.html')">Accéder</button>
             </div>
 
-            <div class="menu-card" onclick="navigateTo('gestion-pret.html')">
+            <!-- GESTION DE PRÊT -->
+            <div class="menu-card">
                 <div class="menu-icon">🏦</div>
                 <h2 class="menu-title">Gestion de Prêt</h2>
                 <p class="menu-description">
@@ -364,10 +369,11 @@
                     <li>Gestion des échéances</li>
                     <li>Historique des paiements</li>
                 </ul>
-                <button class="menu-btn">Accéder</button>
+                <button class="menu-btn" onclick="navigateTo('prets.html')">Accéder</button>
             </div>
 
-            <div class="menu-card" onclick="navigateTo('interet.html')">
+            <!-- INTÉRÊT -->
+            <div class="menu-card">
                 <div class="menu-icon">📈</div>
                 <h2 class="menu-title">Intérêt</h2>
                 <p class="menu-description">
@@ -379,7 +385,7 @@
                     <li>Capitalisation</li>
                     <li>Simulation financière</li>
                 </ul>
-                <button class="menu-btn">Accéder</button>
+                <button class="menu-btn" onclick="navigateTo('interet.html')">Accéder</button>
             </div>
         </div>
     </div>
@@ -390,32 +396,26 @@
 
     <script>
         function navigateTo(page) {
-            // Effet de transition avant la navigation
-            const card = event.currentTarget;
-            card.style.transform = 'scale(0.95)';
-            card.style.opacity = '0.8';
-
+            const button = event.currentTarget;
+            button.style.transform = 'scale(0.95)';
+            button.style.opacity = '0.8';
             setTimeout(() => {
                 window.location.href = page;
             }, 200);
         }
 
-        // Animation d'entrée
         document.addEventListener('DOMContentLoaded', function() {
             const cards = document.querySelectorAll('.menu-card');
-
-            cards.forEach((card, index) => {
+            cards.forEach((card) => {
                 card.addEventListener('mouseenter', function() {
                     this.style.transform = 'translateY(-10px) scale(1.02)';
                 });
-
                 card.addEventListener('mouseleave', function() {
                     this.style.transform = 'translateY(0) scale(1)';
                 });
             });
         });
 
-        // Effet de parallaxe subtil
         document.addEventListener('mousemove', function(e) {
             const circles = document.querySelectorAll('.floating-circle');
             const x = e.clientX / window.innerWidth;
@@ -425,19 +425,15 @@
                 const speed = (index + 1) * 0.3;
                 const xOffset = (x - 0.5) * speed * 30;
                 const yOffset = (y - 0.5) * speed * 30;
-
                 circle.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
             });
         });
 
-        // Animation des icônes au scroll
         window.addEventListener('scroll', function() {
             const cards = document.querySelectorAll('.menu-card');
-
             cards.forEach(card => {
                 const rect = card.getBoundingClientRect();
                 const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-
                 if (isVisible) {
                     const icon = card.querySelector('.menu-icon');
                     icon.style.animation = 'pulse 2s ease-in-out infinite';

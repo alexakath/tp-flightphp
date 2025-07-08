@@ -1,34 +1,76 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <title>Gestion des Prêts - EF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            color: #2d3748;
         }
         
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-out forwards;
         }
         
         h1 {
-            color: #2c3e50;
             text-align: center;
+            font-size: 2.5em;
+            font-weight: 300;
+            color: white;
             margin-bottom: 30px;
         }
         
-        .form-section {
-            background-color: #f8f9fa;
+        .stats-section {
+            background: rgba(255, 255, 255, 0.15);
             padding: 20px;
-            border-radius: 5px;
+            border-radius: 16px;
+            margin-bottom: 35px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .stats-item {
+            display: inline-block;
+            margin: 0 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #c6f6d5;
+        }
+        
+        .form-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+        
+        .form-section h3 {
+            color: #e2e8f0;
+            font-size: 1.3em;
             margin-bottom: 20px;
         }
         
@@ -39,115 +81,198 @@
             margin-bottom: 10px;
         }
         
-        input, select, button {
-            margin: 5px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        input,
+        select,
+        button {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
         }
         
-        input[type="number"], select {
-            width: 180px;
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        input:focus,
+        select:focus {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-color: #a3bffa;
+        }
+        
+        select {
+            background-color: rgba(255, 255, 255, 0.2);
         }
         
         button {
-            background-color: #3498db;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            border: none;
+            font-weight: bold;
             cursor: pointer;
-            padding: 10px 20px;
+            border: none;
+            position: relative;
+            overflow: hidden;
         }
         
-        button:hover {
-            background-color: #2980b9;
-        }
-        
-        .btn-modify {
-            background-color: #f1c40f;
-            padding: 5px 10px;
-            font-size: 14px;
-        }
-        
-        .btn-delete {
-            background-color: #e74c3c;
-            padding: 5px 10px;
-            font-size: 14px;
-        }
-        
-        table {
-            border-collapse: collapse;
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
             width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        .btn-cancel {
+            background-color: #a0aec0;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #718096;
+        }
+        
+        .form-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
             margin-top: 20px;
         }
         
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        th,
+        td {
+            padding: 14px 16px;
             text-align: left;
+            color: white;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        th:last-child,
+        td:last-child {
+            border-right: none;
         }
         
         th {
-            background-color: #34495e;
-            color: white;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-weight: 600;
         }
         
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-edit {
+            background-color: #ecc94b;
+            color: #1a202c;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        
+        .btn-delete {
+            background-color: #f56565;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        
+        .btn-edit:hover {
+            background-color: #d69e2e;
+        }
+        
+        .btn-delete:hover {
+            background-color: #e53e3e;
         }
         
         .error-message {
             background-color: #f8d7da;
             color: #721c24;
             padding: 10px;
-            border-radius: 4px;
+            border-radius: 8px;
             margin: 10px 0;
             border: 1px solid #f5c6cb;
         }
         
-        .stats-section {
-            background-color: #e8f5e8;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
-        .stats-item {
-            display: inline-block;
-            margin: 0 20px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #27ae60;
+        @media (max-width: 768px) {
+            .form-section input,
+            .form-section button,
+            .form-section select {
+                width: 100%;
+                margin-bottom: 12px;
+            }
+            .form-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .form-row {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Gestion des Prêts - Établissement Financier</h1>
 
         <div class="stats-section">
-            <div class="stats-item">Solde Total: <span id="solde-total">0.00 €</span></div>
-            <div class="stats-item">Total Prêts: <span id="total-prets">0</span></div>
+            <div class="stats-item">Solde Total : <span id="solde-total">0.00 €</span></div>
+            <div class="stats-item">Total Prêts : <span id="total-prets">0</span></div>
         </div>
 
         <div class="form-section">
             <h3 id="form-title">Soumettre une Demande de Prêt</h3>
+
             <div class="form-row">
                 <select id="client_id" required>
-                    <option value="">Sélectionner un client</option>
-                </select>
+          <option value="">Sélectionner un client</option>
+        </select>
                 <select id="type_pret_id" required>
-                    <option value="">Sélectionner un type de prêt</option>
-                </select>
+          <option value="">Sélectionner un type de prêt</option>
+        </select>
                 <input type="number" id="montant" placeholder="Montant (€)" step="0.01" min="0" required>
             </div>
+
             <div class="form-row">
                 <input type="number" id="duree" placeholder="Durée (mois)" min="1" required>
-                <input type="date" id="date_debut" placeholder="Date de début" required>
+                <input type="date" id="date_debut" required>
             </div>
-            <div class="form-row">
-                <button id="submit-btn" onclick="soumettrePret()">Soumettre</button>
-                <button onclick="resetForm()" style="background-color: #95a5a6;">Annuler</button>
+
+            <div class="form-buttons">
+                <button id="submit-btn" onclick="soumettrePret()">✅ Soumettre</button>
+                <button onclick="resetForm()" class="btn-cancel">❌ Annuler</button>
             </div>
         </div>
 
@@ -168,177 +293,6 @@
             <tbody></tbody>
         </table>
     </div>
-
-    <script>
-        const apiBase = "http://localhost/tp-flightphp/ws";
-        let currentPretId = null;
-
-        function showError(message) {
-            const errorContainer = document.getElementById('error-container');
-            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
-            setTimeout(() => errorContainer.innerHTML = '', 5000);
-        }
-
-        function ajax(method, url, data, callback) {
-            const xhr = new XMLHttpRequest();
-            xhr.open(method, apiBase + url, true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = () => {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            callback(response);
-                        } catch (e) {
-                            console.error("Erreur de parsing JSON:", e);
-                            showError("Erreur de communication avec le serveur");
-                        }
-                    } else {
-                        console.error("Erreur HTTP:", xhr.status, xhr.statusText);
-                        showError(`Erreur de communication avec le serveur (HTTP ${xhr.status})`);
-                    }
-                }
-            };
-            xhr.send(data);
-        }
-
-        function chargerSoldeTotal() {
-            ajax("GET", "/fonds/solde-total", null, (data) => {
-                const solde = data.solde_total ? parseFloat(data.solde_total).toFixed(2) : "0.00";
-                document.getElementById("solde-total").textContent = solde + " €";
-            });
-        }
-
-        function chargerClients() {
-            ajax("GET", "/clients", null, (data) => {
-                const select = document.getElementById("client_id");
-                select.innerHTML = '<option value="">Sélectionner un client</option>';
-                if (data && data.length > 0) {
-                    data.forEach(client => {
-                        const option = document.createElement("option");
-                        option.value = client.id;
-                        option.textContent = client.nom;
-                        select.appendChild(option);
-                    });
-                }
-            });
-        }
-
-        function chargerTypesPret() {
-            ajax("GET", "/types-pret", null, (data) => {
-                const select = document.getElementById("type_pret_id");
-                select.innerHTML = '<option value="">Sélectionner un type de prêt</option>';
-                if (data && data.length > 0) {
-                    data.forEach(type => {
-                        const option = document.createElement("option");
-                        option.value = type.id;
-                        option.textContent = type.nom;
-                        select.appendChild(option);
-                    });
-                }
-            });
-        }
-
-        function chargerPrets() {
-            ajax("GET", "/prets", null, (data) => {
-                const tbody = document.querySelector("#table-prets tbody");
-                tbody.innerHTML = "";
-                document.getElementById("total-prets").textContent = data ? data.length : 0;
-
-                if (data && data.length > 0) {
-                    data.forEach(pret => {
-                        const tr = document.createElement("tr");
-                        tr.innerHTML = `
-                            <td>${pret.id}</td>
-                            <td>${pret.client_nom}</td>
-                            <td>${pret.type_pret_nom}</td>
-                            <td>${parseFloat(pret.montant).toFixed(2)} €</td>
-                            <td>${pret.duree} mois</td>
-                            <td>${pret.date_debut}</td>
-                            <td>
-                                <button class="btn-modify" onclick="modifierPret(${pret.id}, '${pret.client_id}', '${pret.type_pret_id}', ${pret.montant}, ${pret.duree}, '${pret.date_debut}')">✏️ Modifier</button>
-                                <button class="btn-delete" onclick="supprimerPret(${pret.id})">🗑️ Supprimer</button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }
-            });
-        }
-
-        function soumettrePret() {
-            const client_id = document.getElementById("client_id").value;
-            const type_pret_id = document.getElementById("type_pret_id").value;
-            const montant = document.getElementById("montant").value;
-            const duree = document.getElementById("duree").value;
-            const date_debut = document.getElementById("date_debut").value;
-
-            if (!client_id || !type_pret_id || !montant || !duree || !date_debut) {
-                showError("Veuillez remplir tous les champs obligatoires.");
-                return;
-            }
-
-            const data = `client_id=${encodeURIComponent(client_id)}&type_pret_id=${encodeURIComponent(type_pret_id)}&montant=${encodeURIComponent(montant)}&duree=${encodeURIComponent(duree)}&date_debut=${encodeURIComponent(date_debut)}`;
-
-            const method = currentPretId ? "PUT" : "POST";
-            const url = currentPretId ? `/prets/${currentPretId}` : "/prets";
-
-            ajax(method, url, data, (response) => {
-                if (response.error) {
-                    showError(response.error);
-                } else {
-                    resetForm();
-                    chargerPrets();
-                    chargerSoldeTotal();
-                    alert(currentPretId ? "Prêt modifié avec succès !" : "Demande de prêt soumise avec succès !");
-                }
-            });
-        }
-
-        function modifierPret(id, client_id, type_pret_id, montant, duree, date_debut) {
-            currentPretId = id;
-            document.getElementById("form-title").textContent = "Modifier une Demande de Prêt";
-            document.getElementById("submit-btn").textContent = "Modifier";
-            document.getElementById("client_id").value = client_id;
-            document.getElementById("type_pret_id").value = type_pret_id;
-            document.getElementById("montant").value = montant;
-            document.getElementById("duree").value = duree;
-            document.getElementById("date_debut").value = date_debut;
-        }
-
-        function supprimerPret(id) {
-            if (confirm("Êtes-vous sûr de vouloir supprimer ce prêt ?")) {
-                ajax("DELETE", `/prets/${id}`, null, (response) => {
-                    if (response.error) {
-                        showError(response.error);
-                    } else {
-                        chargerPrets();
-                        chargerSoldeTotal();
-                        alert("Prêt supprimé avec succès !");
-                    }
-                });
-            }
-        }
-
-        function resetForm() {
-            currentPretId = null;
-            document.getElementById("form-title").textContent = "Soumettre une Demande de Prêt";
-            document.getElementById("submit-btn").textContent = "Soumettre";
-            document.getElementById("client_id").value = "";
-            document.getElementById("type_pret_id").value = "";
-            document.getElementById("montant").value = "";
-            document.getElementById("duree").value = "";
-            document.getElementById("date_debut").value = new Date().toISOString().split('T')[0];
-        }
-
-        // Initialiser la date du jour
-        document.getElementById("date_debut").value = new Date().toISOString().split('T')[0];
-
-        // Charger les données au démarrage
-        chargerSoldeTotal();
-        chargerClients();
-        chargerTypesPret();
-        chargerPrets();
-    </script>
 </body>
+
 </html>
