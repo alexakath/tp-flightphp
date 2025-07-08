@@ -129,4 +129,21 @@ class Fond {
             $updateStmt->execute([$soldeTotal, $fond['id']]);
         }
     }
+
+    public static function deduireMontant($montant, $date, $description) {
+    $db = getDB();
+    
+    // Insérer une entrée négative
+    $montant = -$montant; // Montant négatif pour déduction
+    $soldeActuel = self::getSoldeTotal();
+    $nouveauSolde = $soldeActuel + $montant;
+    
+    $stmt = $db->prepare("INSERT INTO fonds (montant, date_ajout, description, solde_total) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$montant, $date, $description, $nouveauSolde]);
+    
+    // Recalculer les soldes pour cohérence
+    self::recalculerSoldes();
+    
+    return $nouveauSolde;
+}
 }

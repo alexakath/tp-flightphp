@@ -34,7 +34,6 @@ CREATE TABLE pret (
     montant DECIMAL(10, 2) NOT NULL,
     date_debut DATE NOT NULL,
     duree INT NOT NULL,
-    statut ENUM('en_attente', 'approuve', 'rejete') DEFAULT 'en_attente',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (client_id) REFERENCES client(id) ON DELETE CASCADE,
     FOREIGN KEY (type_pret_id) REFERENCES types_pret(id) ON DELETE RESTRICT
@@ -49,7 +48,6 @@ CREATE TABLE echeances (
     montant_capital DECIMAL(10, 2) NOT NULL, -- Part du capital à rembourser
     montant_interet DECIMAL(10, 2) NOT NULL, -- Part des intérêts
     montant_total DECIMAL(10, 2) NOT NULL, -- Total de l'échéance
-    statut ENUM('en_attente', 'paye', 'retard') DEFAULT 'en_attente',
     date_paiement DATE NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (pret_id) REFERENCES pret(id) ON DELETE CASCADE,
