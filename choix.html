@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Principal - Gestion Financière</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            text-align: center;
+            margin-bottom: 50px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            font-weight: 300;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1em;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .menu-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(50px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        
+        .menu-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+        
+        .menu-card:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+        
+        .menu-card:nth-child(3) {
+            animation-delay: 0.5s;
+        }
+        
+        .menu-card:nth-child(4) {
+            animation-delay: 0.7s;
+        }
+        
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+        
+        .menu-card:hover::before {
+            opacity: 1;
+            transform: rotate(45deg) translate(50px, 50px);
+        }
+        
+        .menu-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+        }
+        
+        .menu-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .menu-card:hover .menu-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .menu-title {
+            color: #2c3e50;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .menu-description {
+            color: #666;
+            line-height: 1.5;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .menu-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .menu-features li {
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .menu-features li::before {
+            content: '✓';
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .menu-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+        }
+        
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .menu-btn:hover::before {
+            left: 100%;
+        }
+        
+        .menu-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .floating-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        .circle1 {
+            width: 120px;
+            height: 120px;
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+        
+        .circle2 {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+        
+        .circle3 {
+            width: 100px;
+            height: 100px;
+            bottom: 15%;
+            left: 10%;
+            animation-delay: 4s;
+        }
+        
+        .circle4 {
+            width: 60px;
+            height: 60px;
+            bottom: 25%;
+            right: 15%;
+            animation-delay: 6s;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-30px);
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .menu-card {
+                padding: 30px 20px;
+            }
+            .container {
+                padding: 0 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="floating-elements">
+        <div class="floating-circle circle1"></div>
+        <div class="floating-circle circle2"></div>
+        <div class="floating-circle circle3"></div>
+        <div class="floating-circle circle4"></div>
+    </div>
+
+    <div class="header">
+        <h1>Système de Gestion Financière</h1>
+        <p>Choisissez le module que vous souhaitez utiliser</p>
+    </div>
+
+    <div class="container">
+        <div class="menu-grid">
+            <div class="menu-card" onclick="navigateTo('gestion-fonds.html')">
+                <div class="menu-icon">💰</div>
+                <h2 class="menu-title">Gestion de Fonds</h2>
+                <p class="menu-description">
+                    Gérez et supervisez tous vos fonds d'investissement avec des outils d'analyse avancés.
+                </p>
+                <ul class="menu-features">
+                    <li>Portefeuille de fonds</li>
+                    <li>Analyse de performance</li>
+                    <li>Rapports détaillés</li>
+                    <li>Allocation d'actifs</li>
+                </ul>
+                <button class="menu-btn">Accéder</button>
+            </div>
+
+            <div class="menu-card" onclick="navigateTo('types-pret.html')">
+                <div class="menu-icon">📋</div>
+                <h2 class="menu-title">Gestion des Types de Prêt</h2>
+                <p class="menu-description">
+                    Configurez et gérez les différents types de prêts proposés par votre établissement.
+                </p>
+                <ul class="menu-features">
+                    <li>Création de types de prêt</li>
+                    <li>Paramétrage des conditions</li>
+                    <li>Taux d'intérêt</li>
+                    <li>Critères d'éligibilité</li>
+                </ul>
+                <button class="menu-btn">Accéder</button>
+            </div>
+
+            <div class="menu-card" onclick="navigateTo('gestion-pret.html')">
+                <div class="menu-icon">🏦</div>
+                <h2 class="menu-title">Gestion de Prêt</h2>
+                <p class="menu-description">
+                    Administrez le cycle de vie complet des prêts accordés à vos clients.
+                </p>
+                <ul class="menu-features">
+                    <li>Dossiers de prêt</li>
+                    <li>Suivi des remboursements</li>
+                    <li>Gestion des échéances</li>
+                    <li>Historique des paiements</li>
+                </ul>
+                <button class="menu-btn">Accéder</button>
+            </div>
+
+            <div class="menu-card" onclick="navigateTo('interet.html')">
+                <div class="menu-icon">📈</div>
+                <h2 class="menu-title">Intérêt</h2>
+                <p class="menu-description">
+                    Calculez et gérez les intérêts sur les prêts et les investissements.
+                </p>
+                <ul class="menu-features">
+                    <li>Calcul d'intérêts</li>
+                    <li>Taux variables/fixes</li>
+                    <li>Capitalisation</li>
+                    <li>Simulation financière</li>
+                </ul>
+                <button class="menu-btn">Accéder</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 Système de Gestion Financière. Tous droits réservés.</p>
+    </div>
+
+    <script>
+        function navigateTo(page) {
+            // Effet de transition avant la navigation
+            const card = event.currentTarget;
+            card.style.transform = 'scale(0.95)';
+            card.style.opacity = '0.8';
+
+            setTimeout(() => {
+                window.location.href = page;
+            }, 200);
+        }
+
+        // Animation d'entrée
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.menu-card');
+
+            cards.forEach((card, index) => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+
+        // Effet de parallaxe subtil
+        document.addEventListener('mousemove', function(e) {
+            const circles = document.querySelectorAll('.floating-circle');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+
+            circles.forEach((circle, index) => {
+                const speed = (index + 1) * 0.3;
+                const xOffset = (x - 0.5) * speed * 30;
+                const yOffset = (y - 0.5) * speed * 30;
+
+                circle.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+            });
+        });
+
+        // Animation des icônes au scroll
+        window.addEventListener('scroll', function() {
+            const cards = document.querySelectorAll('.menu-card');
+
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+
+                if (isVisible) {
+                    const icon = card.querySelector('.menu-icon');
+                    icon.style.animation = 'pulse 2s ease-in-out infinite';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
